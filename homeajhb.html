@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AJHB - Valorum Holdings Tech</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        :root {
+            --color-dorado: #FFD700;
+            --color-platino: #E5E4E2;
+            --color-negro: #0a0a0a;
+            --color-card: #1a1a1a;
+            --color-hover: #FFC107;
+            --gradient-dark: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #000000;
+            background-image: 
+                linear-gradient(0deg, transparent 24%, rgba(255, 215, 0, 0.05) 25%, rgba(255, 215, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 215, 0, 0.05) 75%, rgba(255, 215, 0, 0.05) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(255, 215, 0, 0.05) 25%, rgba(255, 215, 0, 0.05) 26%, transparent 27%, transparent 74%, rgba(255, 215, 0, 0.05) 75%, rgba(255, 215, 0, 0.05) 76%, transparent 77%, transparent),
+                radial-gradient(ellipse at 50% 0%, rgba(255, 215, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 100%, rgba(255, 193, 7, 0.1) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #0a0a0a 50%, #1a1a1a 75%, #0a0a0a 100%);
+            background-size: 50px 50px, 50px 50px, 100% 100%, 100% 100%, 100% 100%;
+            background-attachment: fixed;
+            color: var(--color-platino);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255, 215, 0, 0.08) 0%, transparent 25%),
+                radial-gradient(circle at 80% 70%, rgba(255, 193, 7, 0.06) 0%, transparent 25%),
+                radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.04) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 0;
+            animation: backgroundShift 20s ease-in-out infinite;
+        }
+        
+        @keyframes backgroundShift {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+        
+        /* Intro Overlay - Cinematográfico */
+        .intro-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: introFadeOut 1.5s ease-out 4s forwards;
+            overflow: hidden;
+        }
+        
+        .intro-overlay::before {
+            content: '';
+            position: absolute;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, transparent 20%, rgba(255, 215, 0, 0.03) 20%, rgba(255, 215, 0, 0.03) 40%, transparent 40%, transparent),
+                        radial-gradient(circle, transparent 20%, rgba(255, 215, 0, 0.03) 20%, rgba(255, 215, 0, 0.03) 40%, transparent 40%, transparent) 50px 50px;
+            background-size: 100px 100px;
+            animation: backgroundMove 20s linear infinite;
+            opacity: 0.3;
+        }
+        
+        @keyframes backgroundMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        @keyframes rotate {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes introFadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+                transform: scale(1.2);
+            }
+        }
+        
+        .intro-content {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .intro-logo {
+            font-size: 10rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--color-dorado) 0%, #fff 50%, var(--color-hover) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: logoAppear 2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards, glow 2s ease-in-out infinite;
+            letter-spacing: 1.5rem;
+            filter: drop-shadow(0 0 30px rgba(255, 215, 0, 0.8));
+        }
+        
+        @keyframes logoAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0) rotate(-180deg);
+            }
+            60% {
+                opacity: 1;
+                transform: scale(1.15) rotate(5deg);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+            }
+        }
+        
+        @keyframes glow {
+            0%, 100% {
+                filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+            }
+            50% {
+                filter: drop-shadow(0 0 40px rgba(255, 215, 0, 1));
+            }
+        }
+        
+        .intro-subtitle {
+            font-size: 1.8rem;
+            color: var(--color-platino);
+            margin-top: 2rem;
+            opacity: 0;
+            animation: subtitleAppear 1.5s ease-out 1.5s forwards, pulse 2s ease-in-out 2s infinite;
+            letter-spacing: 0.5rem;
+            text-transform: uppercase;
+        }
+        
+        @keyframes subtitleAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes mapPulse {
+            0%, 100% {
+                transform: scale(1);
+                filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
+            }
+            50% {
+                transform: scale(1.02);
+                filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+            }
+        }
+        
+        @keyframes pointPulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.7;
+            }
+        }
+        
+        /* Partículas de fondo */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: var(--color-dorado);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 20s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            25% { transform: translateY(-100px) translateX(50px); }
+            50% { transform: translateY(-50px) translateX(-50px); }
+            75% { transform: translateY(-150px) translateX(100px); }
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(26, 26, 26, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid var(--color-dorado);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .logo-text {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--color-dorado) 0%, var(--color-hover) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            letter-spacing: 0.3rem;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            color: var(--color-platino);
+            font-weight: 300;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+        }
+        
+        .company-name {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--color-dorado);
+            font-weight: 600;
+        }
+        
+        /* Cinta de frases motivacionales */
+        .motivational-banner {
+            background: linear-gradient(90deg, var(--color-dorado) 0%, var(--color-hover) 50%, var(--color-dorado) 100%);
+            padding: 1rem;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-negro);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+        }
+        
+        .motivational-text {
+            animation: fadeInOut 1s ease-in-out;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-10px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(10px); }
+        }
+        
+        /* Container principal */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            position: relative;
+            z-index: 5;
+        }
+        
+        /* Sección de departamentos */
+        .departments-section {
+            margin: 3rem 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 1.8rem;
+            color: var(--color-dorado);
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2rem;
+        }
+        
+        .departments-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .department-card {
+            background: linear-gradient(145deg, rgba(26, 26, 26, 0.95), rgba(42, 42, 42, 0.95));
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        
+        .department-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, var(--color-dorado), transparent);
+            opacity: 0;
+            transition: all 0.6s;
+            animation: rotate 4s linear infinite;
+            animation-play-state: paused;
+        }
+        
+        .department-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--color-dorado) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        
+        .department-card:hover {
+            transform: translateY(-15px) scale(1.03);
+            border-color: var(--color-dorado);
+            box-shadow: 0 25px 80px rgba(255, 215, 0, 0.5), 
+                        0 0 40px rgba(255, 215, 0, 0.3),
+                        inset 0 0 20px rgba(255, 215, 0, 0.1);
+        }
+        
+        .department-card:hover::before {
+            opacity: 0.15;
+            animation-play-state: running;
+        }
+        
+        .department-card:hover::after {
+            opacity: 0.05;
+        }
+        
+        .department-icon {
+            font-size: 4rem;
+            color: var(--color-dorado);
+            margin-bottom: 1.5rem;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+        }
+        
+        .department-card:hover .department-icon {
+            transform: scale(1.3) rotate(360deg);
+            filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.9));
+        }
+        
+        .department-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-platino);
+            margin-bottom: 0.75rem;
+        }
+        
+        .department-description {
+            font-size: 0.95rem;
+            color: rgba(229, 228, 226, 0.8);
+            line-height: 1.5;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+        
+        .status-coming {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+            border: 1px solid #FFC107;
+        }
+        
+        /* Sección de información */
+        .info-section {
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            margin: 3rem 0;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .info-title {
+            font-size: 2rem;
+            color: var(--color-dorado);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .info-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--color-platino);
+            text-align: center;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        /* Ramas de programación */
+        .tech-stack {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .tech-item {
+            background: rgba(255, 215, 0, 0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            transition: all 0.3s;
+        }
+        
+        .tech-item:hover {
+            background: rgba(255, 215, 0, 0.2);
+            transform: translateY(-5px);
+        }
+        
+        .tech-item i {
+            font-size: 2.5rem;
+            color: var(--color-dorado);
+            margin-bottom: 0.5rem;
+        }
+        
+        .tech-name {
+            font-weight: 600;
+            color: var(--color-platino);
+        }
+        
+        /* Footer */
+        .footer {
+            background: rgba(26, 26, 26, 0.95);
+            padding: 2rem;
+            text-align: center;
+            border-top: 2px solid var(--color-dorado);
+            margin-top: 4rem;
+        }
+        
+        .copyright {
+            font-size: 1rem;
+            color: var(--color-platino);
+            margin-bottom: 0.5rem;
+        }
+        
+        .company-info {
+            font-size: 0.9rem;
+            color: rgba(229, 228, 226, 0.7);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .logo-text {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .departments-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tech-stack {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .intro-logo {
+                font-size: 5rem;
+            }
+            
+            .intro-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            /* Hacer responsive las nuevas secciones */
+            div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Intro Overlay -->
+    <div class="intro-overlay" id="introOverlay">
+        <div class="intro-glow"></div>
+        <div id="introParticles"></div>
+        <div class="intro-content">
+            <div class="intro-logo">AJHB</div>
+            <div class="intro-subtitle">Real Estate Technology</div>
+        </div>
+        <div class="intro-footer">
+            <i class="fas fa-copyright"></i> 2025 AJHB Bienes Raíces | Todos los derechos reservados<br>
+            <span style="opacity: 0.5; font-size: 0.75rem;">Powered by Valorum Holdings Tech</span>
+        </div>
+    </div>
+    
+    <!-- Partículas de fondo -->
+    <div class="particles" id="particles"></div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="logo-container">
+            <div class="logo-text">AJHB</div>
+        </div>
+        <div class="subtitle">Plataforma Integral de Gestión Inmobiliaria</div>
+        <div class="company-name">
+            <i class="fas fa-building"></i> Powered by Valorum Holdings Tech | Real Estate Technology
+        </div>
+        
+        <!-- Botón de cerrar sesión -->
+        <div style="position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 1rem;">
+            <div style="color: var(--color-platino); font-size: 0.9rem;">
+                <i class="fas fa-user-circle"></i> <span id="userName">Usuario</span>
+            </div>
+            <button onclick="cerrarSesion()" style="
+                background: linear-gradient(135deg, rgba(220, 38, 38, 0.8), rgba(185, 28, 28, 0.8));
+                color: white;
+                border: 2px solid rgba(255, 255, 255, 0.2);
+                padding: 0.6rem 1.2rem;
+                border-radius: 8px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s;
+                box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+            " onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(220, 38, 38, 0.5)'" 
+               onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(220, 38, 38, 0.3)'">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </button>
+        </div>
+    </header>
+    
+    <!-- Cinta motivacional -->
+    <div class="motivational-banner">
+        <div class="motivational-text" id="motivationalText">Cargando...</div>
+    </div>
+    
+    <!-- Container principal -->
+    <main class="main-container">
+        <!-- Sección de departamentos -->
+        <section class="departments-section">
+            <h2 class="section-title">
+                <i class="fas fa-building"></i> Seleccione su Departamento
+            </h2>
+            
+            <div class="departments-grid">
+                <!-- Departamento de Contaduría -->
+                <div class="department-card" onclick="goToDepartment('contaduria')">
+                    <i class="fas fa-calculator department-icon"></i>
+                    <h3 class="department-name">Contaduría</h3>
+                    <p class="department-description">
+                        Sistema contable completo con gestión de asientos, reportes financieros, 
+                        activos fijos, cuentas por cobrar/pagar y más.
+                    </p>
+                    <span class="status-badge status-active">
+                        <i class="fas fa-check-circle"></i> Activo
+                    </span>
+                </div>
+                
+                <!-- Departamento de Secretarios -->
+                <div class="department-card" onclick="goToDepartment('secretarios')" id="secretariosCard">
+                    <i class="fas fa-file-alt department-icon"></i>
+                    <h3 class="department-name">Secretarios</h3>
+                    <p class="department-description">
+                        Gestión de notas, recordatorios, calendario de eventos,
+                        tareas y administración de información ejecutiva.
+                    </p>
+                    <span class="status-badge status-active" id="secretariosStatus">
+                        <i class="fas fa-check-circle"></i> Activo
+                    </span>
+                </div>
+                
+                <!-- Departamento de Ventas -->
+                <div class="department-card" onclick="goToDepartment('ventas')" id="ventasCard">
+                    <i class="fas fa-chart-line department-icon"></i>
+                    <h3 class="department-name">Ventas</h3>
+                    <p class="department-description">
+                        CRM, gestión de clientes, cotizaciones, seguimiento de ventas,
+                        comisiones y análisis de rendimiento.
+                    </p>
+                    <span class="status-badge status-active" id="ventasStatus">
+                        <i class="fas fa-check-circle"></i> Activo
+                    </span>
+                </div>
+                
+                <!-- Dashboard Director Ejecutivo -->
+                <div class="department-card" onclick="goToDepartment('ejecutivo')" id="ejecutivoCard">
+                    <i class="fas fa-crown department-icon"></i>
+                    <h3 class="department-name">Director Ejecutivo</h3>
+                    <p class="department-description">
+                        Dashboard consolidado con métricas de Contaduría y Ventas,
+                        reportes ejecutivos y análisis de rendimiento global.
+                    </p>
+                    <span class="status-badge status-active" id="ejecutivoStatus">
+                        <i class="fas fa-check-circle"></i> Activo
+                    </span>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Información de Valorum Holdings Tech -->
+        <section class="info-section">
+            <h2 class="info-title">
+                <i class="fas fa-building"></i> Acerca de Valorum Holdings Tech
+            </h2>
+            <div class="info-content">
+                <p style="margin-bottom: 1.5rem; font-size: 1.1rem;">
+                    <strong>Valorum Holdings Tech</strong> es la empresa líder en desarrollo de software especializado para el sector inmobiliario,
+                    con más de una década transformando la gestión de bienes raíces a través de tecnología de vanguardia.
+                </p>
+                <p style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-home"></i> <strong>Especialistas en Real Estate:</strong> 
+                    Nuestro sistema AJHB está diseñado específicamente para empresas de bienes raíces, administradoras de propiedades,
+                    desarrolladores inmobiliarios y gestores de portafolios de inversión.
+                </p>
+                <p style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-lock"></i> <strong>Privacidad y Seguridad Total:</strong> 
+                    Protección de datos con encriptación AES-256, cumplimiento de normativas internacionales de protección de datos,
+                    respaldos automáticos cada 6 horas y almacenamiento en servidores certificados ISO 27001.
+                </p>
+                <p style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-chart-line"></i> <strong>ROI Comprobado:</strong> 
+                    Nuestros clientes reportan un incremento promedio del 40% en eficiencia operativa y reducción del 60% en tiempos administrativos.
+                </p>
+                <p>
+                    <i class="fas fa-globe"></i> <strong>Presencia Internacional:</strong> 
+                    Con clientes en más de 15 países, somos el socio tecnológico preferido por las empresas inmobiliarias más importantes de Latinoamérica.
+                </p>
+            </div>
+            
+            <!-- Ramas de programación -->
+            <div class="tech-stack">
+                <div class="tech-item">
+                    <i class="fab fa-python"></i>
+                    <div class="tech-name">Python</div>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-js"></i>
+                    <div class="tech-name">JavaScript</div>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-html5"></i>
+                    <div class="tech-name">HTML5</div>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-css3-alt"></i>
+                    <div class="tech-name">CSS3</div>
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-database"></i>
+                    <div class="tech-name">SQL</div>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-react"></i>
+                    <div class="tech-name">React</div>
+                </div>
+                <div class="tech-item">
+                    <i class="fab fa-node"></i>
+                    <div class="tech-name">Node.js</div>
+                </div>
+                <div class="tech-item">
+                    <i class="fas fa-server"></i>
+                    <div class="tech-name">Flask</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Estadísticas en tiempo real -->
+        <section class="info-section">
+            <h2 class="info-title">
+                <i class="fas fa-chart-bar"></i> Sistema en Tiempo Real
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; text-align: center;">
+                <div style="background: rgba(255, 215, 0, 0.1); padding: 2rem; border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                    <i class="fas fa-file-invoice" style="font-size: 2rem; color: var(--color-dorado); margin-bottom: 0.5rem;"></i>
+                    <div style="font-size: 3rem; color: var(--color-dorado); font-weight: 700;" id="transactions">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div style="color: var(--color-platino); margin-top: 0.5rem;">Asientos Contables</div>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.1); padding: 2rem; border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                    <i class="fas fa-users" style="font-size: 2rem; color: var(--color-dorado); margin-bottom: 0.5rem;"></i>
+                    <div style="font-size: 3rem; color: var(--color-dorado); font-weight: 700;" id="clientes">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div style="color: var(--color-platino); margin-top: 0.5rem;">Clientes Activos</div>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.1); padding: 2rem; border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                    <i class="fas fa-sticky-note" style="font-size: 2rem; color: var(--color-dorado); margin-bottom: 0.5rem;"></i>
+                    <div style="font-size: 3rem; color: var(--color-dorado); font-weight: 700;" id="notas">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div style="color: var(--color-platino); margin-top: 0.5rem;">Notas Activas</div>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.1); padding: 2rem; border-radius: 10px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                    <i class="fas fa-folder" style="font-size: 2rem; color: var(--color-dorado); margin-bottom: 0.5rem;"></i>
+                    <div style="font-size: 3rem; color: var(--color-dorado); font-weight: 700;" id="documentos">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                    <div style="color: var(--color-platino); margin-top: 0.5rem;">Documentos</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Características del Sistema -->
+        <section class="info-section">
+            <h2 class="info-title">
+                <i class="fas fa-building"></i> ¿Por Qué AJHB es Líder en Bienes Raíces?
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                <div style="background: rgba(255, 215, 0, 0.05); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 0.5rem;">
+                        <i class="fas fa-home"></i> Gestión Inmobiliaria Integral
+                    </h3>
+                    <p style="color: var(--color-platino); font-size: 0.95rem;">
+                        Administra propiedades, contratos, clientes y transacciones desde una sola plataforma centralizada.
+                    </p>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.05); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 0.5rem;">
+                        <i class="fas fa-file-contract"></i> Control de Contratos
+                    </h3>
+                    <p style="color: var(--color-platino); font-size: 0.95rem;">
+                        Seguimiento automático de vencimientos, renovaciones y obligaciones contractuales inmobiliarias.
+                    </p>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.05); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 0.5rem;">
+                        <i class="fas fa-dollar-sign"></i> Gestión Financiera Avanzada
+                    </h3>
+                    <p style="color: var(--color-platino); font-size: 0.95rem;">
+                        Control total de ingresos por rentas, gastos operativos, comisiones y flujo de caja inmobiliario.
+                    </p>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.05); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 0.5rem;">
+                        <i class="fas fa-chart-pie"></i> Reportes Inmobiliarios
+                    </h3>
+                    <p style="color: var(--color-platino); font-size: 0.95rem;">
+                        Análisis de rentabilidad, ocupación, valorización y ROI de tu portafolio de propiedades.
+                    </p>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.05); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 0.5rem;">
+                        <i class="fas fa-bell"></i> Alertas Inteligentes
+                    </h3>
+                    <p style="color: var(--color-platino); font-size: 0.95rem;">
+                        Notificaciones automáticas de pagos pendientes, mantenimientos y oportunidades de negocio.
+                    </p>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.05); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 0.5rem;">
+                        <i class="fas fa-shield-alt"></i> Cumplimiento Legal
+                    </h3>
+                    <p style="color: var(--color-platino); font-size: 0.95rem;">
+                        Gestión documental segura y cumplimiento de normativas del sector inmobiliario.
+                    </p>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.05); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 0.5rem;">
+                        <i class="fas fa-users"></i> CRM Inmobiliario
+                    </h3>
+                    <p style="color: var(--color-platino); font-size: 0.95rem;">
+                        Gestión completa de clientes, prospectos, seguimiento de leads y cierre de ventas.
+                    </p>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.05); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 0.5rem;">
+                        <i class="fas fa-mobile-alt"></i> Acceso Móvil Total
+                    </h3>
+                    <p style="color: var(--color-platino); font-size: 0.95rem;">
+                        Gestiona tu negocio inmobiliario desde cualquier lugar con acceso multiplataforma.
+                    </p>
+                </div>
+                <div style="background: rgba(255, 215, 0, 0.05); padding: 1.5rem; border-radius: 10px; border-left: 4px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 0.5rem;">
+                        <i class="fas fa-key"></i> Portal del Inquilino
+                    </h3>
+                    <p style="color: var(--color-platino); font-size: 0.95rem;">
+                        Plataforma exclusiva para inquilinos con pagos en línea y solicitudes de mantenimiento.
+                    </p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Mapa Mejorado de Costa Rica -->
+        <section class="info-section">
+            <h2 class="info-title">
+                <i class="fas fa-map-marked-alt"></i> Cobertura Nacional
+            </h2>
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <p style="font-size: 1.1rem; color: var(--color-platino);">
+                    Servicios inmobiliarios en todo Costa Rica
+                </p>
+            </div>
+            <div style="position: relative; background: linear-gradient(145deg, rgba(26, 26, 26, 0.95), rgba(42, 42, 42, 0.95)); padding: 2rem; border-radius: 20px; border: 2px solid rgba(255, 215, 0, 0.3); box-shadow: 0 10px 40px rgba(255, 215, 0, 0.2);">
+                <!-- Mapa interactivo mejorado -->
+                <div id="map-container" style="position: relative; width: 100%; height: 600px; border-radius: 15px; overflow: hidden; box-shadow: 0 0 30px rgba(255, 215, 0, 0.4); background: #1a1a1a; z-index: 1;">
+                    <!-- El mapa se cargará aquí con Leaflet -->
+                </div>
+                    
+                    <!-- Panel de información flotante -->
+                    <div style="position: absolute; top: 20px; left: 20px; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(15px); padding: 1.5rem; border-radius: 15px; border: 2px solid var(--color-dorado); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7); max-width: 300px;">
+                        <h3 style="color: var(--color-dorado); margin-bottom: 1rem; font-size: 1.3rem;">
+                            <i class="fas fa-map-marker-alt"></i> AJHB Bienes Raíces
+                        </h3>
+                        <p style="color: var(--color-platino); font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem;">
+                            Presencia en las <strong style="color: var(--color-dorado);">7 provincias</strong> de Costa Rica
+                        </p>
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <div style="text-align: center; flex: 1;">
+                                <div style="font-size: 1.8rem; color: var(--color-dorado); font-weight: 700;">7</div>
+                                <div style="font-size: 0.8rem; color: var(--color-platino);">Provincias</div>
+                            </div>
+                            <div style="text-align: center; flex: 1;">
+                                <div style="font-size: 1.8rem; color: var(--color-dorado); font-weight: 700;">82</div>
+                                <div style="font-size: 0.8rem; color: var(--color-platino);">Cantones</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Estado de servicios flotante -->
+                    <div style="position: absolute; bottom: 20px; right: 20px; background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(15px); padding: 1rem; border-radius: 15px; border: 2px solid var(--color-dorado); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);">
+                        <h4 style="color: var(--color-dorado); margin-bottom: 0.75rem; font-size: 1rem;">
+                            <i class="fas fa-server"></i> Servicios
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div id="status-conta" style="width: 10px; height: 10px; border-radius: 50%; background: #666;"></div>
+                                <span style="color: var(--color-platino); font-size: 0.85rem;">Contaduría</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div id="status-ventas" style="width: 10px; height: 10px; border-radius: 50%; background: #666;"></div>
+                                <span style="color: var(--color-platino); font-size: 0.85rem;">Ventas</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div id="status-secretarios" style="width: 10px; height: 10px; border-radius: 50%; background: #666;"></div>
+                                <span style="color: var(--color-platino); font-size: 0.85rem;">Secretarios</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <div id="status-auth" style="width: 10px; height: 10px; border-radius: 50%; background: #666;"></div>
+                                <span style="color: var(--color-platino); font-size: 0.85rem;">Seguridad</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Guía de Asesoría de Ventas -->
+        <section class="info-section">
+            <h2 class="info-title">
+                <i class="fas fa-handshake"></i> Guía del Asesor Inmobiliario Exitoso
+            </h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div style="background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05)); padding: 2rem; border-radius: 15px; border-left: 5px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 1rem; font-size: 1.3rem;">
+                        <i class="fas fa-search"></i> 1. Prospección Efectiva
+                    </h3>
+                    <ul style="color: var(--color-platino); line-height: 1.8; list-style: none; padding: 0;">
+                        <li>✓ Identifica tu nicho de mercado objetivo</li>
+                        <li>✓ Utiliza redes sociales y marketing digital</li>
+                        <li>✓ Networking en eventos inmobiliarios</li>
+                        <li>✓ Base de datos organizada en AJHB</li>
+                        <li>✓ Seguimiento constante de leads</li>
+                    </ul>
+                </div>
+                <div style="background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05)); padding: 2rem; border-radius: 15px; border-left: 5px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 1rem; font-size: 1.3rem;">
+                        <i class="fas fa-home"></i> 2. Valoración de Propiedades
+                    </h3>
+                    <ul style="color: var(--color-platino); line-height: 1.8; list-style: none; padding: 0;">
+                        <li>✓ Análisis comparativo de mercado (CMA)</li>
+                        <li>✓ Evalúa ubicación y características</li>
+                        <li>✓ Considera tendencias del mercado</li>
+                        <li>✓ Documenta con fotos profesionales</li>
+                        <li>✓ Reportes automáticos en el sistema</li>
+                    </ul>
+                </div>
+                <div style="background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05)); padding: 2rem; border-radius: 15px; border-left: 5px solid var(--color-dorado);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 1rem; font-size: 1.3rem;">
+                        <i class="fas fa-comments"></i> 3. Negociación Profesional
+                    </h3>
+                    <ul style="color: var(--color-platino); line-height: 1.8; list-style: none; padding: 0;">
+                        <li>✓ Escucha activa de necesidades del cliente</li>
+                        <li>✓ Presenta opciones con transparencia</li>
+                        <li>✓ Maneja objeciones con datos reales</li>
+                        <li>✓ Cierra con contratos legales</li>
+                        <li>✓ Seguimiento post-venta</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Cómo Vender Terrenos y Casas -->
+        <section class="info-section">
+            <h2 class="info-title">
+                <i class="fas fa-chart-line"></i> Estrategias de Venta Inmobiliaria
+            </h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div style="background: rgba(26, 26, 26, 0.95); padding: 2.5rem; border-radius: 20px; border: 2px solid rgba(255, 215, 0, 0.3);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 1.5rem; font-size: 1.5rem;">
+                        <i class="fas fa-mountain"></i> Venta de Terrenos
+                    </h3>
+                    <div style="color: var(--color-platino); line-height: 1.8;">
+                        <p style="margin-bottom: 1rem;"><strong style="color: var(--color-dorado);">Documentación Esencial:</strong></p>
+                        <ul style="margin-bottom: 1.5rem;">
+                            <li>Plano catastrado actualizado</li>
+                            <li>Certificación registral</li>
+                            <li>Estudio de suelos (si aplica)</li>
+                            <li>Permisos de construcción disponibles</li>
+                        </ul>
+                        <p style="margin-bottom: 1rem;"><strong style="color: var(--color-dorado);">Puntos de Venta:</strong></p>
+                        <ul>
+                            <li>Ubicación y accesos</li>
+                            <li>Servicios disponibles (agua, luz)</li>
+                            <li>Potencial de desarrollo</li>
+                            <li>Plusvalía proyectada</li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="background: rgba(26, 26, 26, 0.95); padding: 2.5rem; border-radius: 20px; border: 2px solid rgba(255, 215, 0, 0.3);">
+                    <h3 style="color: var(--color-dorado); margin-bottom: 1.5rem; font-size: 1.5rem;">
+                        <i class="fas fa-house-user"></i> Venta de Casas
+                    </h3>
+                    <div style="color: var(--color-platino); line-height: 1.8;">
+                        <p style="margin-bottom: 1rem;"><strong style="color: var(--color-dorado);">Preparación de la Propiedad:</strong></p>
+                        <ul style="margin-bottom: 1.5rem;">
+                            <li>Home staging profesional</li>
+                            <li>Reparaciones menores necesarias</li>
+                            <li>Fotografía y video de calidad</li>
+                            <li>Tour virtual 360°</li>
+                        </ul>
+                        <p style="margin-bottom: 1rem;"><strong style="color: var(--color-dorado);">Marketing Efectivo:</strong></p>
+                        <ul>
+                            <li>Publicación en portales inmobiliarios</li>
+                            <li>Redes sociales y anuncios pagados</li>
+                            <li>Open houses estratégicos</li>
+                            <li>Email marketing a base de datos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Contabilidad Inmobiliaria -->
+        <section class="info-section">
+            <h2 class="info-title">
+                <i class="fas fa-calculator"></i> Contabilidad para Bienes Raíces
+            </h2>
+            <div style="background: linear-gradient(145deg, rgba(26, 26, 26, 0.95), rgba(42, 42, 42, 0.95)); padding: 3rem; border-radius: 20px; border: 1px solid rgba(255, 215, 0, 0.2);">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                    <div style="text-align: center; padding: 1.5rem; background: rgba(255, 215, 0, 0.05); border-radius: 10px;">
+                        <i class="fas fa-file-invoice-dollar" style="font-size: 3rem; color: var(--color-dorado); margin-bottom: 1rem;"></i>
+                        <h4 style="color: var(--color-dorado); margin-bottom: 0.5rem;">Registro de Ingresos</h4>
+                        <p style="color: var(--color-platino); font-size: 0.9rem;">Comisiones, rentas, ventas y servicios adicionales</p>
+                    </div>
+                    <div style="text-align: center; padding: 1.5rem; background: rgba(255, 215, 0, 0.05); border-radius: 10px;">
+                        <i class="fas fa-receipt" style="font-size: 3rem; color: var(--color-dorado); margin-bottom: 1rem;"></i>
+                        <h4 style="color: var(--color-dorado); margin-bottom: 0.5rem;">Control de Gastos</h4>
+                        <p style="color: var(--color-platino); font-size: 0.9rem;">Marketing, mantenimiento, servicios y operación</p>
+                    </div>
+                    <div style="text-align: center; padding: 1.5rem; background: rgba(255, 215, 0, 0.05); border-radius: 10px;">
+                        <i class="fas fa-chart-pie" style="font-size: 3rem; color: var(--color-dorado); margin-bottom: 1rem;"></i>
+                        <h4 style="color: var(--color-dorado); margin-bottom: 0.5rem;">Análisis de Rentabilidad</h4>
+                        <p style="color: var(--color-platino); font-size: 0.9rem;">ROI, márgenes y proyecciones financieras</p>
+                    </div>
+                </div>
+                <div style="color: var(--color-platino); line-height: 1.8;">
+                    <h4 style="color: var(--color-dorado); margin-bottom: 1rem;">Aspectos Clave de la Contabilidad Inmobiliaria:</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div>
+                            <p style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: var(--color-dorado);"></i> <strong>Impuestos:</strong> IVA, Renta, Traspaso, Timbre</p>
+                            <p style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: var(--color-dorado);"></i> <strong>Comisiones:</strong> Cálculo automático según porcentajes</p>
+                            <p style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: var(--color-dorado);"></i> <strong>Depreciación:</strong> Activos y propiedades en renta</p>
+                        </div>
+                        <div>
+                            <p style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: var(--color-dorado);"></i> <strong>Flujo de Caja:</strong> Proyecciones mensuales y anuales</p>
+                            <p style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: var(--color-dorado);"></i> <strong>Reportes:</strong> Balance, P&L, Cash Flow</p>
+                            <p style="margin-bottom: 0.5rem;"><i class="fas fa-check" style="color: var(--color-dorado);"></i> <strong>Cumplimiento:</strong> Declaraciones fiscales automatizadas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="copyright">
+            <i class="fas fa-copyright"></i> 2025 Valorum Holdings Tech. Todos los derechos reservados.
+        </div>
+        <div class="company-info">
+            Sistema AJHB v1.0 | Desarrollo de Software Empresarial | Soporte 24/7
+        </div>
+    </footer>
+    
+    <script>
+        // Frases motivacionales (30 frases)
+        const motivationalPhrases = [
+            "🏢 Transformando el sector inmobiliario con tecnología de vanguardia",
+            "🌟 Tu socio estratégico en la gestión integral de bienes raíces",
+            "💼 Innovación y excelencia en cada transacción inmobiliaria",
+            "🏠 Construyendo el futuro del real estate con soluciones inteligentes",
+            "📊 Datos en tiempo real para decisiones inmobiliarias acertadas",
+            "🔐 Seguridad y confianza en cada operación de bienes raíces",
+            "🚀 Revolucionando la administración de propiedades comerciales",
+            "💎 Maximiza el valor de tu portafolio inmobiliario",
+            "🌐 Conectando oportunidades en el mercado de bienes raíces",
+            "📈 Crecimiento sostenible en el sector inmobiliario",
+            "🏆 Líderes en tecnología para real estate empresarial",
+            "⚡ Agilidad y eficiencia en la gestión de propiedades",
+            "🎯 Soluciones a medida para tu negocio inmobiliario",
+            "🌟 Excelencia operativa en administración de activos",
+            "💡 Inteligencia artificial aplicada al sector inmobiliario",
+            "🏗️ Construyendo relaciones duraderas en bienes raíces",
+            "📱 Gestión inmobiliaria desde cualquier lugar, en cualquier momento",
+            "🔄 Automatización inteligente para operaciones inmobiliarias",
+            "🌍 Expandiendo horizontes en el mercado de propiedades",
+            "💰 Optimización de inversiones en bienes raíces",
+            "🎨 Diseño y funcionalidad en gestión inmobiliaria",
+            "🔍 Transparencia total en cada operación inmobiliaria",
+            "🏅 Calidad certificada en servicios de real estate",
+            "⚙️ Tecnología que impulsa tu negocio inmobiliario",
+            "🌈 Innovación constante en el sector de propiedades",
+            "🎓 Expertise y conocimiento en bienes raíces comerciales",
+            "🔔 Notificaciones inteligentes para oportunidades inmobiliarias",
+            "🎪 Experiencia premium en gestión de propiedades",
+            "🌟 Tu éxito inmobiliario es nuestra prioridad",
+            "🚀 El futuro del real estate comienza aquí"
+        ];
+        
+        let currentPhraseIndex = 0;
+        
+        // Cambiar frase cada 5 segundos
+        function changeMotivationalPhrase() {
+            const textElement = document.getElementById('motivationalText');
+            textElement.style.animation = 'none';
+            setTimeout(() => {
+                textElement.textContent = motivationalPhrases[currentPhraseIndex];
+                textElement.style.animation = 'fadeInOut 1s ease-in-out';
+                currentPhraseIndex = (currentPhraseIndex + 1) % motivationalPhrases.length;
+            }, 50);
+        }
+        
+        // Iniciar frases
+        changeMotivationalPhrase();
+        setInterval(changeMotivationalPhrase, 5000);
+        
+        // Crear partículas
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const numParticles = 50;
+            
+            for (let i = 0; i < numParticles; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        createParticles();
+        
+        // Conectar a todos los backends y obtener estadísticas reales
+        async function loadRealStats() {
+            try {
+                // Obtener datos de Contaduría
+                const contaResponse = await fetch('http://localhost:5000/api/stats/dashboard').catch(() => null);
+                const contaStats = contaResponse?.ok ? await contaResponse.json() : null;
+                
+                // Obtener datos de Ventas
+                const ventasResponse = await fetch('http://localhost:5001/api/clientes').catch(() => null);
+                const ventasData = ventasResponse?.ok ? await ventasResponse.json() : null;
+                
+                // Obtener datos de Secretarios
+                const notasResponse = await fetch('http://localhost:5002/api/notas').catch(() => null);
+                const notasData = notasResponse?.ok ? await notasResponse.json() : null;
+                
+                const docsResponse = await fetch('http://localhost:5002/api/documentos').catch(() => null);
+                const docsData = docsResponse?.ok ? await docsResponse.json() : null;
+                
+                // Actualizar estadísticas
+                const totalAsientos = contaStats?.totalAsientos || 0;
+                const totalClientes = ventasData?.data?.length || 0;
+                const totalNotas = notasData?.data?.length || 0;
+                const totalDocs = docsData?.data?.length || 0;
+                
+                document.getElementById('transactions').textContent = totalAsientos.toLocaleString();
+                document.getElementById('clientes').textContent = totalClientes.toLocaleString();
+                document.getElementById('notas').textContent = totalNotas.toLocaleString();
+                document.getElementById('documentos').textContent = totalDocs.toLocaleString();
+                
+                // Actualizar estado de servicios
+                updateServiceStatus('conta', contaResponse?.ok);
+                updateServiceStatus('ventas', ventasResponse?.ok);
+                updateServiceStatus('secretarios', notasResponse?.ok);
+                
+                // Verificar auth
+                const authResponse = await fetch('http://localhost:5003/api/health').catch(() => null);
+                updateServiceStatus('auth', authResponse?.ok);
+                
+                console.log('✅ Estadísticas actualizadas:', { totalAsientos, totalClientes, totalNotas, totalDocs });
+            } catch (error) {
+                console.error('Error al cargar estadísticas:', error);
+            }
+        }
+        
+        function updateServiceStatus(service, isOnline) {
+            const statusEl = document.getElementById(`status-${service}`);
+            if (statusEl) {
+                if (isOnline) {
+                    statusEl.style.background = '#4CAF50';
+                    statusEl.style.boxShadow = '0 0 15px rgba(76, 175, 80, 0.8)';
+                } else {
+                    statusEl.style.background = '#F44336';
+                    statusEl.style.boxShadow = '0 0 15px rgba(244, 67, 54, 0.8)';
+                }
+            }
+        }
+        
+        // Cargar estadísticas reales al inicio
+        loadRealStats();
+        // Actualizar cada 10 segundos
+        setInterval(loadRealStats, 10000);
+        
+        // Verificar sesión válida
+        function checkSession() {
+            const _0x3c1d = 'AJHB-SECURE-SALT-2025-BIENES-RAICES-SYSTEM';
+            function _0x1b6c(t) {
+                try {
+                    const e = CryptoJS.AES.decrypt(t, _0x3c1d);
+                    return e.toString(CryptoJS.enc.Utf8);
+                } catch(e) {
+                    return null;
+                }
+            }
+            
+            const s = localStorage.getItem('ajhb_session');
+            if (!s) return false;
+            
+            try {
+                const d = _0x1b6c(s);
+                if (!d) return false;
+                
+                const [u, t] = d.split('|');
+                const n = new Date().getTime();
+                const st = parseInt(t);
+                
+                // Sesión válida por 8 horas
+                if (n - st < 8 * 60 * 60 * 1000) {
+                    return true;
+                }
+            } catch(e) {
+                return false;
+            }
+            return false;
+        }
+        
+        // Mostrar notificación profesional
+        function showSecurityNotification() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                animation: fadeIn 0.3s ease-out;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+                    border: 2px solid #FFD700;
+                    border-radius: 20px;
+                    padding: 3rem;
+                    max-width: 500px;
+                    text-align: center;
+                    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.3);
+                    animation: slideIn 0.4s ease-out;
+                ">
+                    <div style="
+                        width: 80px;
+                        height: 80px;
+                        background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 215, 0, 0.05));
+                        border-radius: 50%;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 1.5rem;
+                        box-shadow: 0 0 30px rgba(255, 215, 0, 0.4);
+                    ">
+                        <i class="fas fa-shield-alt" style="font-size: 2.5rem; color: #FFD700;"></i>
+                    </div>
+                    
+                    <h2 style="color: #FFD700; margin-bottom: 1rem; font-size: 1.8rem;">
+                        <i class="fas fa-lock"></i> Acceso Restringido
+                    </h2>
+                    
+                    <p style="color: #E5E4E2; margin-bottom: 1.5rem; line-height: 1.6; font-size: 1.1rem;">
+                        Por favor, <strong style="color: #FFD700;">inicie sesión</strong> para determinar su rol y acceder a los módulos del sistema.
+                    </p>
+                    
+                    <div style="
+                        background: rgba(255, 215, 0, 0.1);
+                        border-left: 3px solid #FFD700;
+                        padding: 1rem;
+                        margin-bottom: 1.5rem;
+                        text-align: left;
+                        border-radius: 5px;
+                    ">
+                        <p style="color: #E5E4E2; font-size: 0.9rem; margin: 0;">
+                            <i class="fas fa-info-circle" style="color: #FFD700;"></i>
+                            <strong style="color: #FFD700;">Seguridad impuesta por Valorum Holdings</strong><br>
+                            Para mantener la integridad y seguridad de los datos de AJHB, todos los usuarios deben autenticarse antes de acceder a los módulos del sistema.
+                        </p>
+                    </div>
+                    
+                    <button onclick="window.location.href='login1.html'" style="
+                        background: linear-gradient(135deg, #FFD700, #FFC107);
+                        color: #0a0a0a;
+                        border: none;
+                        padding: 1rem 2.5rem;
+                        border-radius: 10px;
+                        font-size: 1.1rem;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+                        margin-right: 1rem;
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 215, 0, 0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 215, 0, 0.4)';">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                    </button>
+                    
+                    <button onclick="this.parentElement.parentElement.remove()" style="
+                        background: transparent;
+                        color: #E5E4E2;
+                        border: 2px solid #E5E4E2;
+                        padding: 1rem 2rem;
+                        border-radius: 10px;
+                        font-size: 1rem;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    " onmouseover="this.style.borderColor='#FFD700'; this.style.color='#FFD700';" onmouseout="this.style.borderColor='#E5E4E2'; this.style.color='#E5E4E2';">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+                
+                <style>
+                    @keyframes fadeIn {
+                        from { opacity: 0; }
+                        to { opacity: 1; }
+                    }
+                    @keyframes slideIn {
+                        from { transform: translateY(-50px); opacity: 0; }
+                        to { transform: translateY(0); opacity: 1; }
+                    }
+                </style>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        // Navegar a departamento
+        function goToDepartment(dept) {
+            // Verificar sesión primero
+            if (!checkSession()) {
+                showSecurityNotification();
+                return;
+            }
+            
+            if (dept === 'contaduria') {
+                // Verificar si el backend está disponible
+                fetch('http://localhost:5000/api/health')
+                    .then(response => {
+                        if (response.ok) {
+                            // Backend disponible, redirigir
+                            window.location.href = 'Depconta.html';
+                        } else {
+                            alert('⚠️ El backend de Contaduría no está disponible.\n\nPor favor ejecuta:\npython backendconta.py');
+                        }
+                    })
+                    .catch(error => {
+                        alert('⚠️ El backend de Contaduría no está disponible.\n\nPor favor ejecuta:\npython backendconta.py');
+                    });
+            } else if (dept === 'secretarios') {
+                // Redirigir directamente a Secretarios.html
+                window.location.href = 'Secretarios.html';
+            } else if (dept === 'ventas') {
+                // Verificar si el backend de ventas está disponible
+                fetch('http://localhost:5001/api/health')
+                    .then(response => {
+                        if (response.ok) {
+                            // Backend disponible, redirigir
+                            window.location.href = 'DepVentas.html';
+                        } else {
+                            alert('⚠️ El backend de Ventas no está disponible.\n\nPor favor ejecuta:\npython backendventas.py');
+                        }
+                    })
+                    .catch(error => {
+                        alert('⚠️ El backend de Ventas no está disponible.\n\nPor favor ejecuta:\npython backendventas.py');
+                    });
+            } else if (dept === 'ejecutivo') {
+                // Dashboard Ejecutivo - requiere ambos backends
+                Promise.all([
+                    fetch('http://localhost:5000/api/health').catch(() => ({ ok: false })),
+                    fetch('http://localhost:5001/api/health').catch(() => ({ ok: false }))
+                ]).then(([contaResponse, ventasResponse]) => {
+                    const contaOk = contaResponse.ok;
+                    const ventasOk = ventasResponse.ok;
+                    
+                    if (!contaOk && !ventasOk) {
+                        alert('⚠️ Ningún backend está disponible.\n\nPor favor ejecuta:\n1. python backendconta.py\n2. python backendventas.py');
+                    } else if (!contaOk) {
+                        if (confirm('⚠️ El backend de Contaduría no está disponible.\n\nSolo verás datos de Ventas.\n\n¿Deseas continuar?')) {
+                            window.location.href = 'directorejec.html';
+                        }
+                    } else if (!ventasOk) {
+                        if (confirm('⚠️ El backend de Ventas no está disponible.\n\nSolo verás datos de Contaduría.\n\n¿Deseas continuar?')) {
+                            window.location.href = 'directorejec.html';
+                        }
+                    } else {
+                        // Ambos backends disponibles
+                        window.location.href = 'directorejec.html';
+                    }
+                });
+            }
+        }
+        
+        // Mostrar mensaje de próximamente
+        function showComingSoon(deptName) {
+            alert(`🚀 El módulo de ${deptName} estará disponible próximamente.\n\n✨ Estamos trabajando para ofrecerte la mejor experiencia.\n\n🔒 Incluirá sistema de autenticación y control de acceso.`);
+        }
+        
+        // ===== MAPA DE PROPIEDADES CON LEAFLET =====
+        let map;
+        let markers = [];
+        
+        function initMap() {
+            try {
+                console.log('🗺️ Inicializando mapa de Costa Rica...');
+                
+                // Centrar en Costa Rica
+                map = L.map('map-container').setView([9.7489, -83.7534], 8);
+                
+                // Tema oscuro personalizado
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                    attribution: '© OpenStreetMap | © CARTO',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                console.log('✅ Mapa inicializado correctamente');
+                
+                // Cargar propiedades del backend
+                setTimeout(() => {
+                    loadPropertiesOnMap();
+                }, 1000);
+            } catch (error) {
+                console.error('❌ Error al inicializar mapa:', error);
+            }
+        }
+        
+        async function loadPropertiesOnMap() {
+            try {
+                console.log('🗺️ Cargando propiedades en el mapa...');
+                
+                // Obtener propiedades del backend de ventas
+                const response = await fetch('http://localhost:5001/api/properties');
+                
+                if (!response.ok) {
+                    console.log('⚠️ Backend de ventas no disponible o sin datos');
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('📦 Datos recibidos:', data);
+                
+                if (!data || !data.data || data.data.length === 0) {
+                    console.log('ℹ️ No hay propiedades para mostrar en el mapa');
+                    return;
+                }
+                
+                // Limpiar marcadores anteriores
+                markers.forEach(marker => map.removeLayer(marker));
+                markers = [];
+                
+                // Agrupar propiedades por ubicación Y estado
+                const propiedadesPorUbicacionEstado = {};
+                
+                data.data.forEach(propiedad => {
+                    if (propiedad.latitud && propiedad.longitud) {
+                        const estado = propiedad.estado || propiedad.status || 'disponible';
+                        const key = `${propiedad.provincia}-${propiedad.canton}-${estado}`;
+                        
+                        if (!propiedadesPorUbicacionEstado[key]) {
+                            propiedadesPorUbicacionEstado[key] = {
+                                lat: parseFloat(propiedad.latitud),
+                                lng: parseFloat(propiedad.longitud),
+                                provincia: propiedad.provincia,
+                                canton: propiedad.canton,
+                                estado: estado,
+                                propiedades: []
+                            };
+                        }
+                        propiedadesPorUbicacionEstado[key].propiedades.push(propiedad);
+                    }
+                });
+                
+                // Agrupar por ubicación base para calcular offsets
+                const ubicacionesBase = {};
+                Object.values(propiedadesPorUbicacionEstado).forEach(grupo => {
+                    const baseKey = `${grupo.provincia}-${grupo.canton}`;
+                    if (!ubicacionesBase[baseKey]) {
+                        ubicacionesBase[baseKey] = [];
+                    }
+                    ubicacionesBase[baseKey].push(grupo);
+                });
+                
+                // Crear marcadores separados por estado
+                Object.values(ubicacionesBase).forEach(grupos => {
+                    const numGrupos = grupos.length;
+                    const offsetDistance = 0.015; // Distancia de separación en grados
+                    
+                    grupos.forEach((grupo, index) => {
+                        const total = grupo.propiedades.length;
+                        
+                        // Calcular offset para separar marcadores
+                        let offsetLat = 0;
+                        let offsetLng = 0;
+                        
+                        if (numGrupos > 1) {
+                            const angle = (360 / numGrupos) * index * (Math.PI / 180);
+                            offsetLat = Math.cos(angle) * offsetDistance;
+                            offsetLng = Math.sin(angle) * offsetDistance;
+                        }
+                        
+                        const lat = grupo.lat + offsetLat;
+                        const lng = grupo.lng + offsetLng;
+                        
+                        // Determinar color según estado
+                        const estadoColors = {
+                            'disponible': '#4CAF50',
+                            'vendida': '#F44336',
+                            'reservada': '#FF9800',
+                            'en-proceso': '#FFC107'
+                        };
+                        const color = estadoColors[grupo.estado] || '#9E9E9E';
+                        
+                        // Crear icono con número
+                        const divIcon = L.divIcon({
+                            className: 'custom-marker',
+                            html: `<div style="
+                                background: ${color};
+                                color: white;
+                                border: 3px solid #FFD700;
+                                border-radius: 50%;
+                                width: ${30 + (total * 2)}px;
+                                height: ${30 + (total * 2)}px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-weight: 700;
+                                font-size: ${total > 9 ? '0.85rem' : '1rem'};
+                                box-shadow: 0 0 20px ${color}80, 0 0 40px ${color}40;
+                                transition: all 0.3s;
+                            ">${total}</div>`,
+                            iconSize: [30 + (total * 2), 30 + (total * 2)],
+                            iconAnchor: [15 + total, 15 + total]
+                        });
+                        
+                        const marker = L.marker([lat, lng], {
+                            icon: divIcon
+                        }).addTo(map);
+                        
+                        // Crear popup detallado
+                        const estadoEmoji = {
+                            'disponible': '🟢',
+                            'vendida': '🔴',
+                            'reservada': '🟠',
+                            'en-proceso': '🟡'
+                        };
+                        
+                        let popupContent = `
+                            <div style="color: #000; padding: 1rem; min-width: 280px; font-family: Arial;">
+                                <h4 style="margin: 0 0 1rem 0; color: #FFD700; font-size: 1.2rem; border-bottom: 2px solid #FFD700; padding-bottom: 0.5rem;">
+                                    📍 ${grupo.provincia} - ${grupo.canton}
+                                </h4>
+                                <div style="background: ${color}20; padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem; border-left: 4px solid ${color};">
+                                    <p style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #000;">
+                                        ${estadoEmoji[grupo.estado]} ${total} ${total === 1 ? 'propiedad' : 'propiedades'} ${grupo.estado.toUpperCase()}
+                                    </p>
+                                </div>
+                                <hr style="border: none; border-top: 1px solid #ddd; margin: 1rem 0;">
+                                <h5 style="margin: 0 0 0.75rem 0; color: #000; font-size: 1rem;">Listado:</h5>
+                        `;
+                        
+                        // Listar todas las propiedades
+                        grupo.propiedades.forEach((prop, idx) => {
+                            const nombre = prop.type || prop.nombre || 'Propiedad';
+                            const precio = prop.price || prop.precio || 0;
+                            
+                            popupContent += `
+                                <div style="background: rgba(0, 0, 0, 0.05); padding: 0.75rem; border-radius: 5px; margin-bottom: 0.5rem; border-left: 3px solid ${color};">
+                                    <p style="margin: 0 0 0.25rem 0; font-weight: 600; color: #000; font-size: 0.95rem;">${idx + 1}. ${nombre}</p>
+                                    <p style="margin: 0.25rem 0; font-size: 0.85rem;">💰 ₡${parseFloat(precio).toLocaleString()}</p>
+                                    ${prop.area ? `<p style="margin: 0.25rem 0; font-size: 0.85rem;">📐 ${prop.area} m²</p>` : ''}
+                                    ${prop.address ? `<p style="margin: 0.25rem 0; font-size: 0.8rem; opacity: 0.7;">📍 ${prop.address}</p>` : ''}
+                                </div>
+                            `;
+                        });
+                        
+                        popupContent += `</div>`;
+                        
+                        marker.bindPopup(popupContent, {
+                            maxWidth: 320,
+                            maxHeight: 450
+                        });
+                        
+                        markers.push(marker);
+                    });
+                });
+                
+                console.log(`✅ ${markers.length} marcadores creados para ${data.data.length} propiedades`);
+                
+            } catch (error) {
+                console.error('❌ Error al cargar propiedades en el mapa:', error);
+            }
+        }
+        
+        // Inicializar mapa cuando cargue la página
+        setTimeout(() => {
+            initMap();
+        }, 5500);
+        
+        // Actualizar mapa cada 30 segundos
+        setInterval(() => {
+            if (map) loadPropertiesOnMap();
+        }, 30000);
+        
+        // ===== SISTEMA DE AUTENTICACIÓN Y PERMISOS =====
+        const AUTH_API = 'http://localhost:5003/api';
+        
+        async function verificarSesion() {
+            const token = localStorage.getItem('ajhb_token');
+            const userData = localStorage.getItem('ajhb_user');
+            
+            console.log('🔍 Verificando sesión...');
+            console.log('Token:', token ? 'Presente' : 'Ausente');
+            console.log('UserData:', userData ? 'Presente' : 'Ausente');
+            
+            if (!token || !userData) {
+                console.log('❌ No hay sesión activa, redirigiendo a login...');
+                window.location.href = 'login1.html';
+                return null;
+            }
+            
+            try {
+                console.log('🌐 Verificando token con backend...');
+                const response = await fetch(`${AUTH_API}/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                console.log('📡 Respuesta del servidor:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📦 Datos recibidos:', data);
+                    
+                    if (data.valid) {
+                        console.log('✅ Sesión válida');
+                        return JSON.parse(userData);
+                    } else {
+                        console.log('⚠️ Token no válido según servidor');
+                    }
+                } else {
+                    console.log('⚠️ Respuesta no OK del servidor');
+                }
+            } catch (error) {
+                console.error('❌ Error al verificar sesión:', error);
+                // Si hay error de conexión, permitir acceso con datos locales
+                console.log('⚠️ Backend no disponible, usando datos locales');
+                try {
+                    return JSON.parse(userData);
+                } catch (e) {
+                    console.error('❌ Error al parsear userData:', e);
+                }
+            }
+            
+            // Sesión inválida
+            console.log('❌ Sesión inválida, redirigiendo a login...');
+            localStorage.removeItem('ajhb_token');
+            localStorage.removeItem('ajhb_user');
+            localStorage.removeItem('ajhb_login_time');
+            window.location.href = 'login1.html';
+            return null;
+        }
+        
+        function aplicarPermisos(user) {
+            console.log('🔐 Aplicando permisos para:', user);
+            
+            const permisos = user.permisos ? user.permisos.split(',') : [];
+            const role = user.role;
+            
+            // Ocultar todos los botones por defecto
+            const botones = {
+                'ventas': document.querySelector('a[href="DepVentas.html"]')?.parentElement,
+                'secretarios': document.querySelector('a[href="Secretarios.html"]')?.parentElement,
+                'contaduria': document.querySelector('a[href="Contaduria.html"]')?.parentElement,
+                'director': document.querySelector('a[href="directorejec.html"]')?.parentElement
+            };
+            
+            // Ocultar todos inicialmente
+            Object.values(botones).forEach(btn => {
+                if (btn) btn.style.display = 'none';
+            });
+            
+            // Mostrar según permisos
+            if (role === 'director') {
+                // Director tiene acceso a todo
+                Object.values(botones).forEach(btn => {
+                    if (btn) btn.style.display = 'block';
+                });
+            } else {
+                // Mostrar según permisos específicos
+                if (permisos.includes('ventas') && botones.ventas) {
+                    botones.ventas.style.display = 'block';
+                }
+                if (permisos.includes('secretarios') && botones.secretarios) {
+                    botones.secretarios.style.display = 'block';
+                }
+                if (permisos.includes('contaduria') && botones.contaduria) {
+                    botones.contaduria.style.display = 'block';
+                }
+            }
+            
+            // Mostrar nombre del usuario
+            const userNameElements = document.querySelectorAll('.user-name, #userName');
+            userNameElements.forEach(el => {
+                if (el) el.textContent = user.nombre || user.username;
+            });
+            
+            console.log('✅ Permisos aplicados:', permisos);
+        }
+        
+        function cerrarSesion() {
+            const token = localStorage.getItem('ajhb_token');
+            
+            if (token) {
+                fetch(`${AUTH_API}/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }).catch(err => console.log('Error al cerrar sesión:', err));
+            }
+            
+            localStorage.removeItem('ajhb_token');
+            localStorage.removeItem('ajhb_user');
+            localStorage.removeItem('ajhb_login_time');
+            
+            window.location.href = 'login1.html';
+        }
+        
+        // Crear partículas de intro
+        function createIntroParticles() {
+            const container = document.getElementById('introParticles');
+            if (!container) return;
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'intro-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        // Verificar sesión ANTES de mostrar nada
+        (async function() {
+            console.log('🚀 Iniciando verificación de sesión...');
+            createIntroParticles(); // Crear partículas
+            
+            const user = await verificarSesion();
+            
+            if (user) {
+                console.log('✅ Usuario autenticado:', user.username);
+                aplicarPermisos(user);
+                
+                // Remover intro después de 6 segundos SOLO si está autenticado
+                setTimeout(() => {
+                    const intro = document.getElementById('introOverlay');
+                    if (intro) {
+                        intro.remove();
+                        console.log('🎬 Intro removida');
+                    }
+                }, 6000);
+            } else {
+                console.log('❌ No se pudo autenticar, redirigiendo...');
+            }
+        })();
+    </script>
+</body>
+</html>
